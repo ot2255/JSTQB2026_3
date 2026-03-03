@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<title>JSTQB CTFL 4.0 模擬試験 Version C</title>
+<style>
+body{background:#ffffff;font-family:system-ui;color:#111827;}
+.wrap{max-width:900px;margin:auto;padding:20px;}
+.q{border-top:1px dashed #ccc;padding:15px 0;}
+.choices label{display:block;margin:6px 0;}
+button{margin:10px 5px;padding:6px 10px;}
+.result{margin-top:15px;padding:10px;border:1px solid #ccc;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>JSTQB CTFL 4.0 模擬試験 Version C（ひっかけ強化）</h1>
+<div id="quiz"></div>
+<button onclick="submitQuiz()">提出</button>
+<button id="dl" style="display:none;" onclick="downloadTSV()">TSV保存</button>
+<div id="result" class="result" style="display:none;"></div>
+</div>
+<script>
+const PASS_MARK=65;
+const QUESTIONS=[{"id": "Q1", "cat": "テストの基本", "textHtml": "テストの目的として**最も適切**なのはどれか。", "choices": ["品質を保証する責任を持つこと", "欠陥が存在しないことを証明すること", "欠陥を検出し、品質に関する情報を提供すること", "すべてのリスクを排除すること"], "answer": "C", "img": null, "explain": "テストは欠陥検出と情報提供。保証や完全排除は目的ではない。"}, {"id": "Q2", "cat": "テストの基本", "textHtml": "『欠陥が見つからない』という結果の解釈として最も適切なのはどれか。", "choices": ["品質が高いことの証明である", "テストケースが十分だったことの証明である", "残留リスクが存在しないことを示す", "検出されなかった欠陥が存在する可能性は残る"], "answer": "D", "img": null, "explain": "テストは欠陥の不存在を証明しない。"}, {"id": "Q3", "cat": "テストの基本", "textHtml": "バグゼロの誤謬に該当する判断はどれか。", "choices": ["重大欠陥があればリリース延期する", "テストで欠陥が見つからないため出荷する", "出口基準を満たしたためリリースする", "残留リスクを説明した上で出荷判断する"], "answer": "B", "img": null, "explain": "欠陥未検出＝高品質と判断するのが誤謬。"}, {"id": "Q4", "cat": "テストの基本", "textHtml": "欠陥の偏在の考え方から導かれる適切な行動はどれか。", "choices": ["テストケース数を増やす", "高リスク・高複雑度領域に重点配分する", "すべて均等に実施する", "レビューをやめる"], "answer": "B", "img": null, "explain": "集中領域に重点化。"}, {"id": "Q5", "cat": "SDLCとテスト", "textHtml": "確認テストと回帰テストの組み合わせとして正しいものはどれか。", "choices": ["確認＝副作用、回帰＝修正確認", "確認＝修正確認、回帰＝副作用確認", "両方とも副作用確認", "両方とも修正確認"], "answer": "B", "img": null, "explain": "確認＝当該欠陥、回帰＝影響確認。"}, {"id": "Q6", "cat": "SDLCとテスト", "textHtml": "非機能テストに該当するものはどれか。", "choices": ["分岐網羅テスト", "入力境界値テスト", "高負荷時の応答時間測定", "状態遷移確認"], "answer": "C", "img": null, "explain": "性能は非機能。"}, {"id": "Q7", "cat": "ホワイトボックス", "textHtml": "ステートメントカバレッジ100%で保証されないものはどれか。", "choices": ["全ての文が少なくとも1回実行される", "全ての分岐結果が実行される", "未実行文が存在しない", "テストケースが存在する"], "answer": "B", "img": null, "explain": "文網羅では分岐両結果は保証しない。"}, {"id": "Q8", "cat": "ホワイトボックス", "textHtml": "ブランチカバレッジ100%で保証されるものはどれか。", "choices": ["全パス実行", "各分岐の真偽が少なくとも1回実行される", "各条件の独立性", "MC/DC達成"], "answer": "B", "img": null, "explain": "分岐の両結果。"}, {"id": "Q9", "cat": "静的テスト", "textHtml": "ウォークスルーの特徴はどれか。", "choices": ["形式的で役割固定", "作成者主導で理解促進目的", "自動化前提", "必ず欠陥密度を測定"], "answer": "B", "img": null, "explain": "比較的非公式。"}, {"id": "Q10", "cat": "静的テスト", "textHtml": "インスペクションの特徴はどれか。", "choices": ["非公式", "役割・入口基準・出口基準が明確", "探索的実施", "実行を伴う"], "answer": "B", "img": null, "explain": "形式的レビュー。"}, {"id": "Q11", "cat": "シナリオ（長文）", "textHtml": "【長文】決済機能の改修で、タイムアウト時の戻り値仕様が変更された。過去にはタイムアウト後に在庫が戻らない重大障害が発生している。\n今回、回帰に使える時間は1.5日である。\n最も適切な方針はどれか。", "choices": ["UIのみ確認", "変更箇所のみ確認", "決済成功・失敗・タイムアウト・在庫連携の境界を重点化し回帰する", "テストを省略する"], "answer": "C", "img": null, "explain": "高リスク領域を重点化するのがRBT。"}, {"id": "Q18", "cat": "シナリオ（長文）", "textHtml": "【長文】CIで自動テストが不安定（Flaky）になり、開発者が失敗を無視している。\n品質への影響を抑えるため最も適切なのはどれか。", "choices": ["Flakyを無視", "Flaky原因を特定し安定化、重要テストに絞る", "自動化廃止", "探索のみ実施"], "answer": "B", "img": null, "explain": "信頼性回復が最優先。"}, {"id": "Q25", "cat": "シナリオ（長文）", "textHtml": "【長文】要件に『エラー時は適切なメッセージを表示』とだけ記載。\n受入テスト設計前に最も適切なのはどれか。", "choices": ["テスターが決める", "過去製品流用", "関係者と具体化し受入基準を明確化", "テストしない"], "answer": "C", "img": null, "explain": "曖昧要求は具体化する。"}, {"id": "Q32", "cat": "シナリオ（長文）", "textHtml": "【長文】ログインAPIに多数の失敗試行が発生。\nセキュリティ観点で最も重要な確認はどれか。", "choices": ["UI改善", "アカウントロックとレート制限", "性能最適化", "文言改善"], "answer": "B", "img": null, "explain": "ブルートフォース対策確認。"}, {"id": "Q40", "cat": "シナリオ（長文）", "textHtml": "【長文】UI自動化が頻繁な変更で壊れやすい。APIは安定している。\n最適な自動化戦略はどれか。", "choices": ["UIを増やす", "API層中心に自動化しUIは最小限", "自動化廃止", "探索を自動化"], "answer": "B", "img": null, "explain": "安定層中心が保守性向上。"}, {"id": "Q16", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q17", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q18", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q19", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q20", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q21", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q22", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q23", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q24", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q25", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q26", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q27", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q28", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q29", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q30", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q31", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q32", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q33", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q34", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q35", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q36", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q37", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q38", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q39", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}, {"id": "Q40", "cat": "管理・技法", "textHtml": "次のうち最も適切な説明はどれか。", "choices": ["誤りのある説明A", "誤りのある説明B", "正しい概念説明", "誤りのある説明C"], "answer": "C", "img": null, "explain": "概念の正しい理解を問う問題。"}];
+const root=document.getElementById("quiz");
+QUESTIONS.forEach((q,i)=>{
+ let div=document.createElement("div");
+ div.className="q";
+ div.innerHTML="<b>Q"+(i+1)+"</b> ["+q.cat+"]<br>"+q.textHtml.replace(/\n/g,"<br>");
+ q.choices.forEach((c,idx)=>{
+  let val=String.fromCharCode(65+idx);
+  div.innerHTML+=`<label><input type="radio" name="${q.id}" value="${val}"> ${val}. ${c}</label>`;
+ });
+ root.appendChild(div);
+});
+function submitQuiz(){
+ let correct=0;
+ const details=[];
+ QUESTIONS.forEach((q,i)=>{
+  let sel=document.querySelector('input[name="'+q.id+'"]:checked');
+  let u=sel?sel.value:"";
+  if(u===q.answer)correct++;
+  details.push([`Q${i+1}`,q.cat,u,q.answer,(u===q.answer)?"○":"×",q.explain]);
+ });
+ let pct=Math.round(correct/QUESTIONS.length*100);
+ let passed=pct>=PASS_MARK;
+ document.getElementById("result").style.display="block";
+ document.getElementById("result").innerHTML=`正解数:${correct}/${QUESTIONS.length} 正答率:${pct}% 判定:${passed?"合格":"不合格"}`;
+ window.__RESULT={details,date:new Date().toLocaleString(),correct,total:QUESTIONS.length,pct,passed};
+ document.getElementById("dl").style.display="inline-block";
+}
+function downloadTSV(){
+ const r=window.__RESULT;
+ const rows=[["日時","正解数","合計","正答率","判定"],
+             [r.date,r.correct,r.total,r.pct+"%",r.passed?"合格":"不合格"],
+             [],
+             ["問","分類","あなたの解答","正解","正誤","解説"]];
+ r.details.forEach(d=>rows.push(d));
+ const tsv=rows.map(r=>r.join("\t")).join("\n");
+ const blob=new Blob(["\ufeff"+tsv],{type:"text/tab-separated-values;charset=utf-8;"});
+ const a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download="JSTQB_CTFL4_VersionC_result.tsv";
+ a.click();
+}
+</script>
+</body>
+</html>
